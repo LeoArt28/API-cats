@@ -1,0 +1,71 @@
+  ### Se importan las librerias necesarias para la ejecucion del codigo     
+import json #Para en manejo de json
+import requests #Para las solicitudes de las apis
+
+
+print ("Bienvenido a TU GATITO\n")#Imprime el título
+menu=''#Inicializa el comando menu
+class Raza: #Se crea una clase para despues imprimir los datos.
+    def __init__(self,nombre,temperamento,rango_vida): #Se inicializan los atributos de la clase mediante el constructor. 
+        self.nombre=nombre
+        self.temperamento=temperamento
+        self.rango_vida=rango_vida
+while menu!=0: #En un ciclo while desprendera un menu con las opciones a escoger 
+    menu=str(input("Selecciona la acción que deseas realizar:\n1 -Mostrar un gato aleatorio.\n2 -Mostrar lista de nombres de razas de gatos.\n3 -Buscador de gatos. \n0 -Salir\n\n"))
+    if menu=="1":#Si se selecciona la opcion numero 1 se realizara lo siguiente:
+        url='https://api.thecatapi.com/v1/images/search' #se declara la url donde se accedera a la api de las imagenes de los gatos aleatorios
+        response= requests.get(url) #Se guarda en una nueva variable para poder accesar a la informacion con el método get
+        print(response)
+        if response.status_code==200: #Accedemos al contenido de response para poder obtener la url de un determinado felino que se eligio de manera aleatoria.
+            content=response.content 
+            file=open('cats.html','wb')
+            file.write(content)
+            file.close()   
+            response_json=response.json() #Se crea el diccionario
+            print(response_json)
+            response_json = json.loads(response.text) #Adquirimos la url especifica de la imagen
+            url_new = response_json[0]['url'] #Se guarda como una nueva url de la imagen
+            print(url_new)
+            nombre_local_imagen = "gato_.gif" # El nombre para guardar la imagen
+            imagen = requests.get(url_new).content #Accedemos a la url de la imagen
+            with open(nombre_local_imagen, 'wb') as handler: #Y se guardara la imagen en la unidad de disco duro
+                handler.write(imagen)
+        
+    elif menu=="2":#Si se selecciona la opcion numero 2 del menu se tiene lo siguiente:
+        bus=requests.get("https://api.thecatapi.com/v1/breeds/?api_key=e562baaf-17f7-4ea3-b5ef-cf5385f1f255") #Accedemos a nuestra api con la key que nos a generado para poder entrar
+        razas=bus.json() #Generamos un nuevo diccionario llamado razas con los datoss obtenidos de la api.
+        for raza in razas: #Para cada raza en el diccionario razas obtendremos los diferentes datos.
+            print("-----------")
+            print("           ")
+            nombre=raza['name'] #Obtenemos el nombre del gato
+            temperamento=raza['temperament']#Obtenemos el temperamento del gato
+            rango_vida=raza['life_span']#Obtenemos el rango de vida de dicho gato
+            gato=Raza(nombre,temperamento,rango_vida) #De la clase Raza, pedimos los atributos a imprimir
+            print("Nombre de la raza del gato: ",gato.nombre)#Imprime el nombre
+            print("Temperamento del gato: ",gato.temperamento)#Imprime el temperamento
+            print("El rango de vida del gato: ",gato.rango_vida)#Imprime su rango de vida
+
+    elif menu=="3": #Si en el menu se eligio la opcion 3 
+        try: #Se genera un manejo de excepciones por si ocurre algun error inesperado
+            a=input("Proporcione el nombre de la raza del gato que desea buscar:") #Se le pide al usuario ingresar lo que desea buscar y se guarda en una variable
+            q=a.title()
+            bus_raza = requests.get(url="https://api.thecatapi.com/v1/breeds/search/?q="+str(q)+"&api_key=e562baaf-17f7-4ea3-b5ef-cf5385f1f255")# Se accede a la api de busqueda con los parametros dado
+            razas=bus_raza.json()#Se genera el diccionario nuevo
+            for raza in razas:#Para cada raza en razas se imprimira lo siguiente
+                print("-----------")
+                print("           ")
+                nombre=raza['name'] #Accede al nombre del gato
+                temperamento=raza['temperament']#Accede al temeramento del gato
+                rango_vida=raza['life_span'] #Accede a su esperanza de vida
+                gato=Raza(nombre,temperamento,rango_vida) #Se declara la variable gato con los atributos establecidos en la clase raza
+                print("Nombre de la raza del gato: ",gato.nombre)#Imprime el nombre del gato
+                print("Temperamento del gato: ",gato.temperamento)#Imprime el temperamento del gato
+                print("El rango de vida del gato: ",gato.rango_vida)#Imprime la esperanza de vida del gato
+        except Exception: #Se concluyen las excepciones en general
+            print ("Porfavor proporcione un nombre congruente...")
+        
+    elif menu=="0": #Si se selleciona la opcion 0. el usuario elige salir del programa
+        print("Nos vemos, gracias por utilizar nuestra aplicacion GATITOS")#Imprime una despedida
+        break
+    else:#Si no seleccionan una opcion del menu, ciclo while se seguira ejecutando y se imprimira lo siguiene
+        print ("Opción incorrecta, por favor elija una de las opciones del menu")
